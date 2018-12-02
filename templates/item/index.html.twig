@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Items{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-body">
+            {% if is_granted('ROLE_ADD_ITEM') %}
+                <button class="btn btn-outline-primary waves-effect" onclick="addNewItem()">Add New Item</button>
+            {% endif %}
+        </div>
+        <div id="grid-container" class="card-body">
+            <div id="item-grid"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function() {
+            $("#item-grid").kendoGrid({
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: Routing.generate('items_ajax'),
+                            dataType: "json",
+                        }
+                    },
+                    schema: {
+                        total: "total",
+                        data: "items",
+                        model: {
+                            fields: {
+                                id: {type: "number"},
+                                name: {type: "string"},
+                                type: {type: "string"},
+                                email: {type: "string"},
+                                is_private: {type: "string"},
+                                created: {type: "date"},
+
+                            }
+                        }
+                    },
+                    pageSize: 50
+                },
+                filterable: true,
+                sortable: true,
+                pageable: true,
+                columns: [
+                    {
+                        field: "id",
+                        title: "Id"
+                    }, {
+                        field: "name",
+                        title: "Name"
+                    }, {
+                        field: "type",
+                        title: "Type"
+                    },{
+                        field: "is_private",
+                        title: "Private",
+                        template: function(item){
+                            return item.is_private === 'true' ? 'Yes' : 'No';
+                        }
+                    },{
+                        field: "email",
+                        title: "Creator"
+                    }, {
+                        field: "created",
+                        title: "Created Date",
+                        format: "{0:MM/dd/yyyy H:mm:ss}"
+                    }
+                ],
+                height: 500,
+                scrollable: true,
+                selectable: true,
+            });
+        });
+
+        var addNewItem = function () {
+            var $dialog = $('<div />')
+                .dialog({
+                    autoOpen: false,
+                    buttons: [],
+                    close: function () {
+                        $dialog.dialog('destroy').remove();
+                    },
+                    draggable: false,
+                    modal: true,
+                    resizable: false,
+                    title: 'Add New Item',
+                    width: 320
+                })
+                .dialog('open');
+
+            $dialog.closest('.wo-dialog').find('.ui-dialog-titlebar-close').blur();
+
+            var handleDialog = function (data) {
+                $dialog
+                    .html(data)
+                    .trigger('dialogopen') // invoke dialog load handlers which attach validator;
+                    .dialog('option', 'buttons', [{
+                        'text': 'Add',
+                        'class': 'default-button',
+                        'id': 'save',
+                        'click': function () {
+                            var $form = $dialog.find('form');
+                            var ajaxData = new FormData($form.get(0));
+
+                            $.ajax({
+                                url: Routing.generate('item_add'),
+                                data: ajaxData,
+                                method: 'POST',
+                                dataType: 'json',
+                                cache: false,
+                                contentType: false,
+                                processData: false
+                            })
+                                .always(function () {
+                                    var grid = $('#item-grid').data('kendoGrid');
+                                    grid.dataSource.read();
+                                    grid.refresh();
+                                    $dialog.dialog('close');
+
+                                });
+                        }
+                    }, {
+                        'text': 'Cancel',
+                        'click': function () {
+                            $dialog.dialog("close");
+                        }
+                    }]);
+            };
+
+            $.ajax({
+                url: Routing.generate('item_add'),
+                dataType: 'html',
+                method: 'GET'
+            })
+                .done(handleDialog);
+        }
+    </script>
+{% endblock %}

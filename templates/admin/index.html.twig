@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-body">
+        </div>
+        <div id="grid-container" class="card-body">
+            <div id="user-grid"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        $(document).ready(function() {
+            $("#user-grid").kendoGrid({
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: Routing.generate('users_ajax'),
+                            dataType: "json",
+                        }
+                    },
+                    schema: {
+                        total: "total",
+                        data: "items",
+                        model: {
+                            fields: {
+                                id: {type: "number"},
+                                name: {type: "string"},
+                                email: {type: "string"},
+                                lastLogin: {type: "date"}
+                            }
+                        }
+                    },
+                    pageSize: 50
+                },
+                filterable: true,
+                sortable: true,
+                pageable: true,
+                columns: [
+                    {
+                        field: "id",
+                        title: "Id"
+                    }, {
+                        field: "email",
+                        title: "Email"
+                    }, {
+                        field: "username",
+                        title: "User Name"
+                    }, {
+                        field: "lastLogin",
+                        title: "Last Login Date",
+                        format: "{0:MM/dd/yyyy H:mm:ss}"
+                    },{
+                        field: "canAddItems",
+                        title: "Can Add Items",
+                        template: function(item){
+                            return item.canAddItems ? 'Yes' : 'No';
+                        }
+                    },
+                    {
+                        field: "disableUserAdd",
+                        title: "Disable Item Add",
+                        template:
+                            function (item) {
+                                return '<a href="'+ Routing.generate('toggle_user_restriction', {enable: item.canAddItems ? 0 : 1 ,id: item.id})
+                                    + '" class="btn btn-outline-info waves-effect">'+ (item.canAddItems ? 'Disable' : 'Enable') + ' Item Add</a>'
+                            },
+                    }
+                ],
+                height: 500,
+                scrollable: true,
+                selectable: true,
+            });
+        });
+    </script>
+{% endblock %}

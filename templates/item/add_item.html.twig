@@ -1,0 +1,20 @@
+{{ form_start(form) }}
+{{ form_row(form._token) }}
+    {% if form_errors(form) %}
+        <div class="alert alert-warning" role="alert">
+            {{ form_errors(form) }}
+        </div>
+    {% endif %}
+<div class="md-form">
+    {{ form_label(form.name) }}
+    {{ form_widget(form.name, { 'attr': {'class': 'form-control'} }) }}
+</div>
+<div class="md-form">
+    {{ form_label(form.type) }}
+    {{ form_widget(form.type, { 'attr': {'class': 'form-control'} }) }}
+</div>
+<div class="custom-control custom-checkbox">
+    {{ form_widget(form.is_private) }}
+    {{ form_label(form.is_private) }}
+</div>
+{{ form_end(form) }}
